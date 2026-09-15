@@ -484,7 +484,7 @@ function stats_overview(): array
         $counts['books'] = (int) ($res->fetch_assoc()['total'] ?? 0);
     }
 
-    if ($res = $conn->query('SELECT COUNT(DISTINCT category) AS total FROM books WHERE category <> "" AND deleted_at IS NULL')) {
+    if ($res = $conn->query("SELECT COUNT(DISTINCT category) AS total FROM books WHERE category <> '' AND deleted_at IS NULL")) {
         $counts['categories'] = (int) ($res->fetch_assoc()['total'] ?? 0);
     }
 
@@ -502,7 +502,7 @@ function stats_overview(): array
 function category_list(): array
 {
     $categories = [];
-    $result = db()->query('SELECT DISTINCT category FROM books WHERE category IS NOT NULL AND category <> "" AND deleted_at IS NULL ORDER BY category ASC');
+    $result = db()->query("SELECT DISTINCT category FROM books WHERE category IS NOT NULL AND category <> '' AND deleted_at IS NULL ORDER BY category ASC");
     if ($result) {
         while ($row = $result->fetch_assoc()) {
             $categories[] = (string) $row['category'];
