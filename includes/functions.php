@@ -8,16 +8,19 @@ if (!defined('APP_NAME')) {
     define('APP_NAME', 'Sistem Rekomendasi Buku');
 }
 if (!defined('DB_HOST')) {
-    define('DB_HOST', '127.0.0.1');
+    define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
 }
 if (!defined('DB_USER')) {
-    define('DB_USER', 'root');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
 }
 if (!defined('DB_PASS')) {
-    define('DB_PASS', '');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
 }
 if (!defined('DB_NAME')) {
-    define('DB_NAME', 'db_ta2');
+    define('DB_NAME', getenv('DB_NAME') ?: 'db_ta2');
+}
+if (!defined('DB_PORT')) {
+    define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 }
 
 function app_base_path(): string
@@ -58,11 +61,31 @@ function db(): mysqli
         return $conn;
     }
 
-    $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    if ($conn->connect_error) {
-        http_response_code(500);
-        die('Koneksi database gagal. Silakan import database.sql dan cek konfigurasi DB.');
+    $conn = mysqli_init();
+
+    $is_production = getenv('VERCEL') === '1';
+
+    if ($is_production) {
+        $ca_file = __DIR__ . '/ca.pem';
+
+        if (file_exists($ca_file)) {
+            $conn->ssl_set(null, null, $ca_file, null, null);
+        }
     }
+
+    $success = $conn->real_connect(
+        DB_HOST,
+        DB_USER,
+        DB_PASS,
+        DB_NAME,
+        DB_PORT
+    );
+
+    if (!$success) {
+        http_response_code(500);
+        die('Koneksi database gagal: ' . $conn->connect_error);
+    }
+
     $conn->set_charset('utf8mb4');
 
     return $conn;
